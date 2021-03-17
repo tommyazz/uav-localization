@@ -3,7 +3,7 @@
 """
 import numpy as np
 from scipy.constants import speed_of_light
-EPSILON = 1e-6
+EPSILON = 1
 
 
 def calculate_three_circle_intersection(bss_centers, radius):
@@ -16,11 +16,12 @@ def calculate_three_circle_intersection(bss_centers, radius):
     dx = x1-x0
     dy = y1-y0
     d12 = np.sqrt(dx**2 + dy**2)
-    print(d12)
     if d12 > (r0+r1):
         # the first two circles do not intersect
+        print("circles do not intersect")
         return False, [0, 0]
     if d12 < np.abs(r0-r1):
+        print("one circle is contained in the other one")
         return False, [0, 0]
     a = (r0**2 - r1**2 + d12**2) / (2.0 * d12)
     # intersection point between the line connecting the intersection points and the line connecting the centers of
@@ -40,6 +41,8 @@ def calculate_three_circle_intersection(bss_centers, radius):
     d1 = np.sqrt((int_1_x-x2)**2 + (int_1_y-y2)**2)
     d2 = np.sqrt((int_2_x-x2)**2 + (int_2_y-y2)**2)
 
+    print(np.abs(d1-r2))
+    print(np.abs(d2-r2))
     if np.abs(d1-r2) < EPSILON:
         return True, [int_1_x, int_1_y]
     elif np.abs(d2-r2) < EPSILON:
@@ -79,8 +82,7 @@ def toa_positioning(bss_pos, tof, zoa):
 
     # TODO: in the following we need to be careful circa the reference system with which the zoa is measured in Remcom
     # estimated height of the UAV from each BS
-    height = np.cos(zoa)*d
-    # TODO: not really sure about this estimation of UAV's height
+    height = -np.cos(zoa)*d
     est_height = np.mean(height + bss_pos[:, -1])
     # estimated 2D distance traveled by the signals from each BS to the UAV
     est_2d_distance = np.sin(zoa)*d
@@ -89,5 +91,4 @@ def toa_positioning(bss_pos, tof, zoa):
     if not est_2d_exist:
         print("Impossible to determine the 2D position of the UAV")
     else:
-        print(f"The estimated 2D position of the UAV is: {est_2d_pos}")
         return [est_2d_pos[0], est_2d_pos[1], est_height]

@@ -3,7 +3,7 @@
 """
 import numpy as np
 from scipy.constants import speed_of_light
-EPSILON = 1
+EPSILON = 10
 
 
 def calculate_three_circle_intersection(bss_centers, radius):
@@ -18,11 +18,9 @@ def calculate_three_circle_intersection(bss_centers, radius):
     d12 = np.sqrt(dx**2 + dy**2)
     if d12 > (r0+r1):
         # the first two circles do not intersect
-        print("circles do not intersect")
-        return False, [0, 0]
+        return False, "circles do not intersect"
     if d12 < np.abs(r0-r1):
-        print("one circle is contained in the other one")
-        return False, [0, 0]
+        return False, "one circle is contained in the other one"
     a = (r0**2 - r1**2 + d12**2) / (2.0 * d12)
     # intersection point between the line connecting the intersection points and the line connecting the centers of
     # the circles
@@ -41,14 +39,12 @@ def calculate_three_circle_intersection(bss_centers, radius):
     d1 = np.sqrt((int_1_x-x2)**2 + (int_1_y-y2)**2)
     d2 = np.sqrt((int_2_x-x2)**2 + (int_2_y-y2)**2)
 
-    print(np.abs(d1-r2))
-    print(np.abs(d2-r2))
     if np.abs(d1-r2) < EPSILON:
         return True, [int_1_x, int_1_y]
     elif np.abs(d2-r2) < EPSILON:
         return True, [int_2_x, int_2_y]
     else:
-        return False, [0, 0]
+        return False, "intersection not found"
 
 
 def toa_positioning(bss_pos, tof, zoa):
@@ -72,15 +68,12 @@ def toa_positioning(bss_pos, tof, zoa):
         array
             an array with the estimated coordinates of the UAV as follows: [x,y,z] where z is the estimated height
     """
-
     bss_pos, tof, zoa = np.array(bss_pos), np.array(tof), np.array(zoa)
     assert bss_pos.shape[0] == 3, "At least 3 BSs needed to triangulate the UAV"
     assert bss_pos.shape[0] == tof.shape[0], "# of BSs and # of ToF measurements must be the same"
 
     # compute the 3D distance traveled by signals from each BS to the UAV
     d = speed_of_light*tof
-
-    # TODO: in the following we need to be careful circa the reference system with which the zoa is measured in Remcom
     # estimated height of the UAV from each BS
     height = -np.cos(zoa)*d
     est_height = np.mean(height + bss_pos[:, -1])
@@ -89,6 +82,6 @@ def toa_positioning(bss_pos, tof, zoa):
     est_2d_exist, est_2d_pos = calculate_three_circle_intersection(bss_pos[:, :2], est_2d_distance)
 
     if not est_2d_exist:
-        print("Impossible to determine the 2D position of the UAV")
+        return False, "Impossible to determine the 2D position of the UAV: "+est_2d_pos
     else:
-        return [est_2d_pos[0], est_2d_pos[1], est_height]
+        return True, [est_2d_pos[0], est_2d_pos[1], est_height]

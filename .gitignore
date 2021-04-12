@@ -1,3 +1,6 @@
+# Custom
+/models/full_models/*
+
 # PyCharm IDE
 .idea/
 
@@ -115,3 +118,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+

@@ -1,0 +1,5 @@
+torch~=1.7.1+cu110
+numpy~=1.19.5
+scipy~=1.6.1
+matplotlib~=3.3.4
+setuptools~=52.0.0

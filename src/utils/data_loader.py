@@ -20,11 +20,12 @@ class CustomDataSet(Dataset):
 
 
 class LoadDataSet:
-    def __init__(self, dir_name, path_mode="min_delay", version=2.1):
+    def __init__(self, dir_name, path_mode="min_delay", rnd_state=3, version=2.1):
         # load the data
         self.dir_name = dir_name
         self.dir_path = os.path.abspath("../../"+self.dir_name+"pathwisedata")
         self.path_mode = path_mode
+        self.rnd_state = rnd_state
         self.version = version
         # feature data
         rx_power_tensor = sio.loadmat(os.path.join(self.dir_path, "all_rxpower_tensor_paths"))['rx_power_tensor']
@@ -95,7 +96,7 @@ class LoadDataSet:
 
     def get_datasets(self, split=0.5, dnn=True, scale=True, scaler=None):
         # split the data between training and test sets
-        x_train, x_test, y_train, y_test = train_test_split(self.x, self.y, test_size=split, shuffle=True)
+        x_train, x_test, y_train, y_test = train_test_split(self.x, self.y, test_size=split, shuffle=True, random_state=self.rnd_state)
         print(f"The shape of the training data is: {x_train.shape}")
         print(f"The shape of the testing data is: {x_test.shape}")
 

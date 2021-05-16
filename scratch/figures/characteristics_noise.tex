@@ -1,0 +1,34 @@
+% This file was created by tikzplotlib v0.9.8.
+\begin{tikzpicture}
+
+\definecolor{color0}{rgb}{0.12156862745098,0.466666666666667,0.705882352941177}
+
+\begin{axis}[
+tick align=outside,
+tick pos=left,
+title={Explanation Power for each Characteristic},
+x grid style={white!69.0196078431373!black},
+xmajorgrids,
+xmin=-0.25, xmax=5.25,
+xtick style={color=black},
+xtick={0,1,2,3,4,5},
+xticklabel style={rotate=20.0},
+xticklabels={Azimuth AoA,Azimuth AoD,Zenith AoA,Zenith AoD,Rx Power,Prop Delay (ToA)},
+y grid style={white!69.0196078431373!black},
+ylabel={Sum of the Singular Values},
+ymajorgrids,
+ymin=22389.6036058033, ymax=25058.8028687088,
+ytick style={color=black}
+]
+\addplot [thick, color0, mark=*, mark size=5, mark options={solid}]
+table {%
+0 23686.3371171075
+1 22510.9308450263
+2 23385.69586908
+3 23484.5326388492
+4 24937.4756294859
+5 23400.7731183879
+};
+\end{axis}
+
+\end{tikzpicture}

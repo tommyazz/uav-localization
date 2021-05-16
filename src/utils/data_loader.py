@@ -27,6 +27,7 @@ class LoadDataSet:
         self.path_mode = path_mode
         self.rnd_state = rnd_state
         self.version = version
+        np.random.seed(self.rnd_state)
         # feature data
         rx_power_tensor = sio.loadmat(os.path.join(self.dir_path, "all_rxpower_tensor_paths"))['rx_power_tensor']
         toa_tensor = sio.loadmat(os.path.join(self.dir_path, "all_toa_tensor_paths"))['toa_tensor']
@@ -52,11 +53,24 @@ class LoadDataSet:
 
         # selecting a sub-set of the data for each path
         toa_tensor = self._get_path_data(toa_tensor*1e3)  # convert the toa to milliseconds
-        rx_power_tensor = self._get_path_data(10**(0.1*rx_power_tensor))  # convert power to milliwatt
+        rx_power_tensor = self._get_path_data(rx_power_tensor)  # convert power to milliwatt
         zenith_aoa_tensor = self._get_path_data(zenith_aoa_tensor)
         azimuth_aoa_tensor = self._get_path_data(azimuth_aoa_tensor)
         zenith_aod_tensor = self._get_path_data(zenith_aod_tensor)
         azimuth_aod_tensor = self._get_path_data(azimuth_aod_tensor)
+
+        # compute the SNR for the addition of noise to the data
+        bandwidth = 400e6
+        k_boltz = 1.38e-23
+        noise_figure = 10 ** 0.9
+        temp = 298
+        noise_power = k_boltz * bandwidth * noise_figure * temp
+        rx_power_tensor[rx_power_tensor == 0] = -np.infty
+        rx_power_tensor = 10 ** (0.1 * rx_power_tensor)  # in Watts
+
+        self.snrs = rx_power_tensor / noise_power
+        self.snrs[self.snrs == 0.0] = 1e-25  # no paths to -250 dB SNR
+        # print(np.sum((self.snrs == 1e-25)))
 
         axis = 2 if self.path_mode == "min_delay" else 3
         self.x = np.stack((azimuth_aoa_tensor, azimuth_aod_tensor, zenith_aoa_tensor, zenith_aod_tensor, rx_power_tensor, toa_tensor), axis=axis)
@@ -94,11 +108,20 @@ class LoadDataSet:
         else:
             raise NotImplemented
 
-    def get_datasets(self, split=0.5, dnn=True, scale=True, scaler=None):
+    def get_datasets(self, split=0.5, dnn=True, scale=True, scaler=None, add_noise=False, get_full_data=False):
         # split the data between training and test sets
-        x_train, x_test, y_train, y_test = train_test_split(self.x, self.y, test_size=split, shuffle=True, random_state=self.rnd_state)
+        x = self.x
+        y = self.y
+        if add_noise:
+            x = x / np.sqrt(self.snrs)[:, :, :, None] * np.random.normal(0, 1, size=x.shape)
+
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split, shuffle=True, random_state=self.rnd_state)
         print(f"The shape of the training data is: {x_train.shape}")
         print(f"The shape of the testing data is: {x_test.shape}")
+
+        if get_full_data:
+            # return the train and test data without reshaping and scaling
+            return (x_train, y_train), (x_test, y_test)
 
         if dnn:
             # DNN case

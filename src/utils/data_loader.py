@@ -109,12 +109,13 @@ class LoadDataSet:
             raise NotImplemented
 
     def get_datasets(self, split=0.5, dnn=True, scale=True, scaler=None, add_noise=False, get_full_data=False):
-        # split the data between training and test sets
         x = self.x
         y = self.y
         if add_noise:
-            x = x / np.sqrt(self.snrs)[:, :, :, None] * np.random.normal(0, 1, size=x.shape)
+            # add Gaussian noise to the data 
+            x = x + x / np.sqrt(self.snrs)[:, :, :, None] * np.random.normal(0, 1, size=x.shape)
 
+        # split the data between training and test sets
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split, shuffle=True, random_state=self.rnd_state)
         print(f"The shape of the training data is: {x_train.shape}")
         print(f"The shape of the testing data is: {x_test.shape}")

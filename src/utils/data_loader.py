@@ -70,7 +70,7 @@ class LoadDataSet:
 
         self.snrs = rx_power_tensor / noise_power
         self.snrs[self.snrs == 0.0] = 1e-25  # no paths to -250 dB SNR
-        # print(np.sum((self.snrs == 1e-25)))
+        print(np.sum((self.snrs == 1e-25)))
 
         axis = 2 if self.path_mode == "min_delay" else 3
         self.x = np.stack((azimuth_aoa_tensor, azimuth_aod_tensor, zenith_aoa_tensor, zenith_aod_tensor, rx_power_tensor, toa_tensor), axis=axis)
@@ -112,7 +112,7 @@ class LoadDataSet:
         x = self.x
         y = self.y
         if add_noise:
-            # add Gaussian noise to the data 
+            # add Gaussian noise to the data
             x = x + x / np.sqrt(self.snrs)[:, :, :, None] * np.random.normal(0, 1, size=x.shape)
 
         # split the data between training and test sets
